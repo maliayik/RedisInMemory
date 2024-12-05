@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InMemoryApp.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace InMemoryApp.Web.Controllers
@@ -27,6 +28,17 @@ namespace InMemoryApp.Web.Controllers
                 });
 
                 _memoryCache.Set<string>("zaman", DateTime.Now.ToString(), options);
+
+                Product p = new()
+                {
+                    Id = 1,
+                    Name = "Kalem",
+                    Price = 100
+                };
+
+                //IMemoryCache serialize işlemini kendisi  yaptığından complex type'ı direk ekleyebiliriz.
+                _memoryCache.Set<Product>("product:1", p);
+
             }
 
             return View();
@@ -39,6 +51,7 @@ namespace InMemoryApp.Web.Controllers
 
             ViewBag.callback = callback;
             ViewBag.zaman = zamancache;
+            ViewBag.product = _memoryCache.Get<Product>("product:1");
 
             return View();
         }
