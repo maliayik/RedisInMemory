@@ -12,17 +12,20 @@ namespace InMemoryApp.Web.Controllers
         }
         public IActionResult Index()
         {
-            //memorydeki datanın var olup olmadığını kontrol ediyoruz 1. yol
-            if (string.IsNullOrEmpty(_memoryCache.Get<string>("zaman")))
+            if (!_memoryCache.TryGetValue("zaman", out string? zamancache))
             {
-                _memoryCache.Set<string>("zaman", DateTime.Now.ToString());
-            }
+                MemoryCacheEntryOptions options = new();
 
-            //2. yol TryGetValue ile birlikte belirtilen keyi alıp objeye atamasını yapıyoruz
-            if (!_memoryCache.TryGetValue("zaman", out string zamancache))
-            {
-                //eğer memoryde yoksa memorye ekliyoruz
-                _memoryCache.Set<string>("zaman", DateTime.Now.ToString());
+               // options.AbsoluteExpiration = DateTime.Now.AddSeconds(10);
+
+               //10 saniye içinde dataya erişilmezse memoryden silinir.
+               options.SlidingExpiration = TimeSpan.FromSeconds(10);
+
+                //best practice açısından bir slidind expiration  tanımlarken güncel olmayan bir data ile karşılaşmamak için absolute expiration da tanımlanmalıdır.
+                //yani en fazla 1 dakika sonra memoryden silinir.
+                options.AbsoluteExpiration= DateTime.Now.AddMinutes(1);
+
+                _memoryCache.Set<string>("zaman", DateTime.Now.ToString(),options);
             }
 
             return View();
@@ -30,16 +33,9 @@ namespace InMemoryApp.Web.Controllers
 
         public IActionResult Get()
         {
-            //Remove ile memorydeki verilen key'e göre data silinir
-            _memoryCache.Remove("zaman");
+            _memoryCache.TryGetValue("zaman", out string? zamancache);
 
-            //GetOrCreate ile memoryde var sa alıyoruz yoksa oluşturuyoruz.
-            _memoryCache.GetOrCreate<string>("zaman", entry =>
-            {
-                return DateTime.Now.ToString();
-            });
-
-            ViewBag.zaman = _memoryCache.Get<string>("zaman");
+            ViewBag.zaman = zamancache;
 
             return View();
         }
