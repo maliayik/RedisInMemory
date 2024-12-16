@@ -56,16 +56,24 @@ namespace IDistributedCacheRedisApp.Web.Controllers
             return View();
         }
 
+        //Resim cacheleme işlemi
         public IActionResult ImageCache()
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/winter.jpg");
+            string path = Path.Combine(Directory.GetCurrentDirectory(),"wwwroot/images/winter.jpg");
 
             Byte[] imageByte = System.IO.File.ReadAllBytes(path);
 
             _distributedCache.Set("image", imageByte);
 
-
             return View();
+        }
+
+        public IActionResult ImageUrl()
+        {
+            Byte[] imageByte = _distributedCache.Get("image");
+
+            //byte dizisini image olarak döndürme işlemi
+            return File(imageByte, "image/jpg");
         }
 
     }
