@@ -1,35 +1,58 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Text;
+using IDistributedCacheRedisApp.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace IDistributedCacheRedisApp.Web.Controllers
 {
     public class ProductsController(IDistributedCache _distributedCache) : Controller
     {
         // data kaydetme işlemi
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             DistributedCacheEntryOptions cacheEntryOptions = new DistributedCacheEntryOptions();
 
-            //1 dakikalık bir cache süresi belirledik
             cacheEntryOptions.AbsoluteExpiration = DateTime.Now.AddMinutes(1);
 
-            _distributedCache.SetString("name","Mehmet Ali", cacheEntryOptions);
-            
+            Product product = new Product
+            {
+                Id = 1,
+                Name = "Laptop",
+                Price = 5000
+            };
+
+            //Veri kaydetme yöntemimizi ister json ister binary formatta yapabiliriz.
+            //Json serialize işlemi 
+            string jsonProduct = JsonConvert.SerializeObject(product);
+            await _distributedCache.SetStringAsync("product:1", jsonProduct, cacheEntryOptions);
+
+            //Byte dönüştürme işlemi
+            Byte[] byteProduct = Encoding.UTF8.GetBytes(jsonProduct);
+            _distributedCache.Set("product:1",byteProduct);
+
             return View();
         }
 
         //okuma işlemi
         public IActionResult Show()
         {
-            string name = _distributedCache.GetString("name");
-            ViewBag.name = name;
+            //Json Deserialize işlemi
+            string jsonproduct = _distributedCache.GetString("product:1");
+            Product p = JsonConvert.DeserializeObject<Product>(jsonproduct);
+
+            //Byte okuma işlemi
+            Byte[] byteProduct = _distributedCache.Get("product:1");
+            string jsonProduct = Encoding.UTF8.GetString(byteProduct);
+
+            ViewBag.product = p;
             return View();
         }
 
         //silme işlemi
         public IActionResult Remove()
         {
-            _distributedCache.Remove("name");
+            _distributedCache.Remove("product:1");
             return View();
         }
 
