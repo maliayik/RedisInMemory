@@ -1,9 +1,14 @@
+using RedisExchangeAPI.Web.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<RedisService>();
 
 var app = builder.Build();
+
+var redisService = app.Services.GetRequiredService<RedisService>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -19,6 +24,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+redisService.Connect();
 
 app.MapControllerRoute(
     name: "default",
