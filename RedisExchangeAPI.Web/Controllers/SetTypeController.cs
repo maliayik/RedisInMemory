@@ -8,7 +8,7 @@ namespace RedisExchangeAPI.Web.Controllers
     {
         private readonly RedisService _redisService;
         private readonly IDatabase db;
-        private string listKey = "hashnames";
+        private string listKey = "setnames";
         public SetTypeController(RedisService redisService)
         {
             _redisService = redisService;
